@@ -1,0 +1,30 @@
+# Word temp lock files
+~$*.doc*
+~$*.xls*
+~$*.ppt*
+
+# Keil MDK-ARM build outputs
+RobotLower computer/MDK-ARM/RobotLower computer/*.o
+RobotLower computer/MDK-ARM/RobotLower computer/*.d
+RobotLower computer/MDK-ARM/RobotLower computer/*.crf
+RobotLower computer/MDK-ARM/RobotLower computer/*.axf
+RobotLower computer/MDK-ARM/RobotLower computer/*.hex
+RobotLower computer/MDK-ARM/RobotLower computer/*.htm
+RobotLower computer/MDK-ARM/RobotLower computer/*.lnp
+RobotLower computer/MDK-ARM/RobotLower computer/*.map
+RobotLower computer/MDK-ARM/RobotLower computer/*.dep
+RobotLower computer/MDK-ARM/RobotLower computer/*.build_log.htm
+RobotLower computer/MDK-ARM/*.lst
+RobotLower computer/MDK-ARM/*.s
+
+# Keil per-user IDE state (not shared across the team)
+*.uvguix.*
+*.uvoptx
+RobotLower computer/MDK-ARM/.vscode/*.log
+RobotLower computer/MDK-ARM/.vscode/*.log.lock
+
+# General
+*.bak
+
+# Claude Code local session data
+.claude/

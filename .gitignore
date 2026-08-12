@@ -16,6 +16,7 @@ RobotLower computer/MDK-ARM/RobotLower computer/*.dep
 RobotLower computer/MDK-ARM/RobotLower computer/*.build_log.htm
 RobotLower computer/MDK-ARM/*.lst
 RobotLower computer/MDK-ARM/*.s
+!RobotLower computer/MDK-ARM/startup_stm32h723xx.s
 
 # Keil per-user IDE state (not shared across the team)
 *.uvguix.*

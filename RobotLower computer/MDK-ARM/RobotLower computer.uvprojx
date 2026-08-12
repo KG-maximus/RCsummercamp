@@ -21,7 +21,7 @@
           <Cpu>IRAM(0x20000000-0x2001FFFF) IRAM2(0x24000000-0x2404FFFF) IROM(0x8000000-0x80FFFFF) CLOCK(12000000) FPU3(DFPU) CPUTYPE("Cortex-M7") ELITTLE TZ</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
-          <FlashDriverDll></FlashDriverDll>
+          <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0STM32H72x-73x_1024 -FS08000000 -FL100000 -FP0($$Device:STM32H723ZGTx$CMSIS\Flash\STM32H72x-73x_1024.FLM))</FlashDriverDll>
           <DeviceId>0</DeviceId>
           <RegisterFile></RegisterFile>
           <MemoryEnv></MemoryEnv>
@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_PWR_LDO_SUPPLY,USE_HAL_DRIVER,STM32H723xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../APP/Chassis;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Core/Inc;../APP/Common;../APP/Chassis;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -588,6 +588,61 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>Application/User/APP/Common</GroupName>
+          <Files>
+            <File>
+              <FileName>robot_protocol.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Common/robot_protocol.h</FilePath>
+            </File>
+            <File>
+              <FileName>ControlAlgorithm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Common/ControlAlgorithm.c</FilePath>
+            </File>
+            <File>
+              <FileName>ControlAlgorithm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Common/ControlAlgorithm.h</FilePath>
+            </File>
+            <File>
+              <FileName>fdcan_common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Common/fdcan_common.c</FilePath>
+            </File>
+            <File>
+              <FileName>fdcan_common.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Common/fdcan_common.h</FilePath>
+            </File>
+            <File>
+              <FileName>M3508.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Common/M3508.c</FilePath>
+            </File>
+            <File>
+              <FileName>M3508.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Common/M3508.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Common/bsp_config.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_callback.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Common/bsp_callback.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_callback.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Common/bsp_callback.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>Application/User/APP/Chassis</GroupName>
           <Files>
             <File>
@@ -599,6 +654,51 @@
               <FileName>chassis_mecanum.h</FileName>
               <FileType>5</FileType>
               <FilePath>../APP/Chassis/chassis_mecanum.h</FilePath>
+            </File>
+            <File>
+              <FileName>StrategyAlgorithm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Chassis/StrategyAlgorithm.c</FilePath>
+            </File>
+            <File>
+              <FileName>StrategyAlogrithm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Chassis/StrategyAlogrithm.h</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Chassis/chassis_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Chassis/chassis_control.h</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Chassis/chassis_config.h</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Chassis/chassis_port.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_port.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Chassis/chassis_port.h</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Chassis/chassis_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Chassis/chassis_task.h</FilePath>
             </File>
           </Files>
         </Group>

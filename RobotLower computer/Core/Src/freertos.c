@@ -26,7 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "chassis_config.h"
-#include "chassis_task.h"
+#include "chassis.h"
 
 /* USER CODE END Includes */
 
@@ -103,10 +103,10 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  if (ChassisTask_Init() != 0U)
+  if (ChassisInit() != 0U)
   {
     chassisTaskHandle = osThreadNew(
-      ChassisTask_Entry,
+      ChassisTask,
       NULL,
       &chassisTask_attributes);
   }

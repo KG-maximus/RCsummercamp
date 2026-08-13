@@ -1,176 +1,108 @@
 #include "M3508.h"
 
-static int16_t M3508_ClampCurrent(float current)
+static void M3508Init(M3508_TypeDef *motor, uint8_t id)
 {
-    if (current > (float)M3508_CURRENT_RAW_MAX)
-    {
-        return M3508_CURRENT_RAW_MAX;
-    }
-    if (current < -(float)M3508_CURRENT_RAW_MAX)
-    {
-        return -M3508_CURRENT_RAW_MAX;
-    }
-    return (int16_t)current;
-}
+    if (id < M3508_ID_MIN || id > M3508_ID_MAX)
+        return;
 
-static uint8_t M3508_GroupBaseId(uint16_t ctrl_id)
-{
-    return (ctrl_id == M3508_CTRL_ID_1TO4) ? 1U : 5U;
-}
-
-static void M3508_InitOne(
-    M3508_TypeDef *motor,
-    uint8_t id,
-    const CascadePID_TypeDef *pid_template)
-{
     motor->id = id;
-    motor->feedback.angle = 0U;
+    motor->feedback.angle = 0;
     motor->feedback.speed_rpm = 0;
     motor->feedback.current = 0;
-    motor->feedback.temperature = 0U;
-    motor->feedback.update_cnt = 0U;
-    motor->feedback.last_update_ms = 0U;
+    motor->feedback.temperature = 0;
+    motor->feedback.update_cnt = 0;
+
+    CascadePIDInit(&motor->control.pid,
+                   M3508_SPEED_KP, M3508_SPEED_KI, M3508_SPEED_KD,
+                   M3508_SPEED_MAX_OUT, M3508_SPEED_MAX_IOUT,
+                   M3508_CURRENT_KP, M3508_CURRENT_KI, M3508_CURRENT_KD,
+                   M3508_CURRENT_MAX_OUT, M3508_CURRENT_MAX_IOUT);
     motor->control.speed_target = 0.0f;
     motor->control.current_output = 0;
-    if (pid_template != 0)
-    {
-        motor->control.pid = *pid_template;
-    }
-    else
-    {
-        CascadePIDInit(
-            &motor->control.pid,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f);
-    }
 }
 
-void M3508GroupInit(
-    M3508Group_TypeDef *group,
-    FDCAN_HandleTypeDef *fdcan_handle,
-    uint16_t ctrl_id,
-    const CascadePID_TypeDef *pid_template)
+static uint8_t M3508FeedbackId(uint32_t std_id)
 {
-    uint8_t index;
-    uint8_t base_id;
+    if (std_id <= M3508_FEEDBACK_ID_BASE || std_id > M3508_FEEDBACK_ID_BASE + M3508_ID_MAX)
+        return 0u;
 
-    if ((group == 0) || (fdcan_handle == 0) ||
-        ((ctrl_id != M3508_CTRL_ID_1TO4) &&
-         (ctrl_id != M3508_CTRL_ID_5TO8)))
-    {
-        return;
-    }
-
-    group->fdcan_handle = fdcan_handle;
-    group->ctrl_id = ctrl_id;
-    base_id = M3508_GroupBaseId(ctrl_id);
-    for (index = 0U; index < M3508_GROUP_SIZE; ++index)
-    {
-        M3508_InitOne(&group->motor[index], (uint8_t)(base_id + index), pid_template);
-    }
+    return (uint8_t)(std_id - M3508_FEEDBACK_ID_BASE);
 }
 
-void M3508GroupSetTarget(
-    M3508Group_TypeDef *group,
-    uint8_t id,
-    float speed_target)
+static void M3508ParseFeedback(M3508Feedback_TypeDef *feedback, const uint8_t *rx_data)
 {
-    uint8_t base_id;
-
-    if (group == 0)
-    {
-        return;
-    }
-
-    base_id = M3508_GroupBaseId(group->ctrl_id);
-    if ((id < base_id) || (id >= (uint8_t)(base_id + M3508_GROUP_SIZE)))
-    {
-        return;
-    }
-    group->motor[id - base_id].control.speed_target = speed_target;
-}
-
-uint8_t M3508GroupParseFeedback(
-    M3508Group_TypeDef *group,
-    uint32_t std_id,
-    const uint8_t rx_data[8],
-    uint32_t now_ms)
-{
-    uint8_t id;
-    uint8_t base_id;
-    M3508Feedback_TypeDef *feedback;
-
-    if ((group == 0) || (rx_data == 0) ||
-        (std_id <= M3508_FEEDBACK_ID_BASE) ||
-        (std_id > (M3508_FEEDBACK_ID_BASE + M3508_ID_MAX)))
-    {
-        return 0U;
-    }
-
-    id = (uint8_t)(std_id - M3508_FEEDBACK_ID_BASE);
-    base_id = M3508_GroupBaseId(group->ctrl_id);
-    if ((id < base_id) || (id >= (uint8_t)(base_id + M3508_GROUP_SIZE)))
-    {
-        return 0U;
-    }
-
-    feedback = &group->motor[id - base_id].feedback;
-    feedback->angle = ((uint16_t)rx_data[0] << 8U) | rx_data[1];
-    feedback->speed_rpm = (int16_t)(((uint16_t)rx_data[2] << 8U) | rx_data[3]);
-    feedback->current = (int16_t)(((uint16_t)rx_data[4] << 8U) | rx_data[5]);
+    feedback->angle = ((uint16_t)rx_data[0] << 8) | rx_data[1];
+    feedback->speed_rpm = (int16_t)(((uint16_t)rx_data[2] << 8) | rx_data[3]);
+    feedback->current = (int16_t)(((uint16_t)rx_data[4] << 8) | rx_data[5]);
     feedback->temperature = rx_data[6];
     feedback->update_cnt++;
-    feedback->last_update_ms = now_ms;
-    return 1U;
 }
 
-void M3508GroupUpdate(M3508Group_TypeDef *group, uint8_t enabled)
+static void M3508CurrentPack(uint8_t *tx_data, int16_t iq1, int16_t iq2, int16_t iq3, int16_t iq4)
 {
-    uint8_t index;
-    int16_t current[M3508_GROUP_SIZE] = {0, 0, 0, 0};
+    tx_data[0] = (uint8_t)(iq1 >> 8);
+    tx_data[1] = (uint8_t)(iq1);
+    tx_data[2] = (uint8_t)(iq2 >> 8);
+    tx_data[3] = (uint8_t)(iq2);
+    tx_data[4] = (uint8_t)(iq3 >> 8);
+    tx_data[5] = (uint8_t)(iq3);
+    tx_data[6] = (uint8_t)(iq4 >> 8);
+    tx_data[7] = (uint8_t)(iq4);
+}
+
+static int16_t M3508SpeedControlCalc(M3508_TypeDef *motor)
+{
+    float speed_actual = (float)motor->feedback.speed_rpm;
+    float current_actual = (float)motor->feedback.current;
+
+    float current_out = CascadePIDCalc(&motor->control.pid, speed_actual, motor->control.speed_target, current_actual);
+    motor->control.current_output = (int16_t)current_out;
+
+    return motor->control.current_output;
+}
+
+void M3508GroupInit(M3508Group_TypeDef *group, FDCAN_HandleTypeDef *FDCAN_Handle, uint16_t ctrl_id)
+{
+    uint8_t base = (ctrl_id == M3508_CTRL_ID_1TO4) ? 1u : 5u;
+
+    group->FDCAN_Handle = FDCAN_Handle;
+    group->ctrl_id = ctrl_id;
+
+    for (uint8_t i = 0; i < M3508_GROUP_SIZE; i++)
+        M3508Init(&group->motor[i], (uint8_t)(base + i));
+}
+
+void M3508GroupSetTarget(M3508Group_TypeDef *group, uint8_t id, float speed_target)
+{
+    uint8_t base = (group->ctrl_id == M3508_CTRL_ID_1TO4) ? 1u : 5u;
+
+    if (id < base || id >= (uint8_t)(base + M3508_GROUP_SIZE))
+        return;
+
+    group->motor[id - base].control.speed_target = speed_target;
+}
+
+uint8_t M3508GroupParseFeedback(M3508Group_TypeDef *group, uint32_t std_id, const uint8_t *rx_data)
+{
+    uint8_t base = (group->ctrl_id == M3508_CTRL_ID_1TO4) ? 1u : 5u;
+    uint8_t id = M3508FeedbackId(std_id);
+
+    if (id < base || id >= (uint8_t)(base + M3508_GROUP_SIZE))
+        return 0u;
+
+    M3508ParseFeedback(&group->motor[id - base].feedback, rx_data);
+    return 1u;
+}
+
+void M3508GroupUpdate(M3508Group_TypeDef *group)
+{
+    int16_t iq[M3508_GROUP_SIZE];
     uint8_t tx_data[8];
 
-    if ((group == 0) || (group->fdcan_handle == 0))
-    {
-        return;
-    }
+    for (uint8_t i = 0; i < M3508_GROUP_SIZE; i++)
+        iq[i] = M3508SpeedControlCalc(&group->motor[i]);
 
-    if (enabled != 0U)
-    {
-        for (index = 0U; index < M3508_GROUP_SIZE; ++index)
-        {
-            M3508_TypeDef *motor = &group->motor[index];
-            current[index] = M3508_ClampCurrent(CascadePIDCalc(
-                &motor->control.pid,
-                (float)motor->feedback.speed_rpm,
-                motor->control.speed_target,
-                (float)motor->feedback.current));
-            motor->control.current_output = current[index];
-        }
-    }
-    else
-    {
-        for (index = 0U; index < M3508_GROUP_SIZE; ++index)
-        {
-            group->motor[index].control.current_output = 0;
-        }
-    }
-
-    tx_data[0] = (uint8_t)(current[0] >> 8U);
-    tx_data[1] = (uint8_t)current[0];
-    tx_data[2] = (uint8_t)(current[1] >> 8U);
-    tx_data[3] = (uint8_t)current[1];
-    tx_data[4] = (uint8_t)(current[2] >> 8U);
-    tx_data[5] = (uint8_t)current[2];
-    tx_data[6] = (uint8_t)(current[3] >> 8U);
-    tx_data[7] = (uint8_t)current[3];
-    FDCANSendStandard(group->fdcan_handle, group->ctrl_id, tx_data, 8U);
+    M3508CurrentPack(tx_data, iq[0], iq[1], iq[2], iq[3]);
+    FDCANSendStandard(group->FDCAN_Handle, group->ctrl_id, tx_data, 8);
 }
+

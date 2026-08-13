@@ -5,7 +5,7 @@
  * ============================= 配置说明 =============================
  *
  * 本文件是旧 RobotLower computer 工程中“底盘真车参数”的集中入口。
- * chassis_task.c 会将本文件的宏整理为 ChassisControl_Config_t，再交给
+ * chassis.c 会将本文件的宏整理为 ChassisControl_Config_t，再交给
  * 运动学、速度规划和 M3508/C620 适配层使用。因此，通常只应在本文件
  * 修改底盘参数，不要在各个 .c 文件里散落地改同一个物理量。
  *
@@ -33,12 +33,14 @@
 #define CHASSIS_APP_CONFIG_READY                 (0U)
 
 /*
- * M3508/C620 PID 使能开关。
+ * M3508/C620 PID 输出人工确认开关。
  *
  * 每个轮子完成“上电零输出、低速架空、方向确认、保守增益调试”之前必须
- * 保持 0U。为 0U 时，chassis_port 仍可初始化和解析 C620 反馈，但会让
- * M3508 驱动只发送零电流停机帧；为 1U 后才允许 PID 根据目标 rpm 输出
- * 控制电流。它不替代 CHASSIS_APP_CONFIG_READY，两者都应经过实车验证。
+ * 保持 0U。M3508 默认 PID 已由 APP/Common/M3508.h 统一定义，不再在本
+ * 文件重复配置；但“参数存在”不等于“已在当前底盘验证”。为 0U 时仍可
+ * 初始化并解析 C620 反馈，驱动只发送零电流；为 1U 后才允许默认 PID 根据
+ * 目标 rpm 输出控制电流。它不替代 CHASSIS_APP_CONFIG_READY，两者都必须
+ * 经过架空、单轮、低速验证后再人工打开。
  */
 #define CHASSIS_M3508_PID_CONFIG_READY           (0U)
 
@@ -65,25 +67,8 @@
 #define CHASSIS_M3508_ID_RR                      (4U)
 
 /*
- * M3508 级联 PID 参数。外环通常以速度 rpm 为反馈，内环以电流/转矩为
- * 反馈；具体算法、积分限幅和输出单位以 APP/Common/ControlAlgorithm.c、
- * M3508.c 的实际实现为准。所有 0.0f 都是安全占位值，未单独完成调参前
- * 不应填写猜测值，更不能在四轮同时接地的情况下直接提高输出限幅。
- */
-#define CHASSIS_M3508_SPEED_KP                   (0.0f)
-#define CHASSIS_M3508_SPEED_KI                   (0.0f)
-#define CHASSIS_M3508_SPEED_KD                   (0.0f)
-#define CHASSIS_M3508_SPEED_MAX_OUT              (0.0f)
-#define CHASSIS_M3508_SPEED_MAX_IOUT             (0.0f)
-#define CHASSIS_M3508_CURRENT_KP                 (0.0f)
-#define CHASSIS_M3508_CURRENT_KI                 (0.0f)
-#define CHASSIS_M3508_CURRENT_KD                 (0.0f)
-#define CHASSIS_M3508_CURRENT_MAX_OUT            (0.0f)
-#define CHASSIS_M3508_CURRENT_MAX_IOUT           (0.0f)
-
-/*
  * FreeRTOS 调度参数。
- * CHASSIS_CONTROL_PERIOD_MS：chassis_task 的固定控制周期，单位 ms。当前
+ * CHASSIS_CONTROL_PERIOD_MS：ChassisTask 的固定控制周期，单位 ms。当前
  * 为 3 ms；M3508 反馈由 FDCAN 中断异步更新，任务只在本周期读取快照并
  * 计算下一帧目标。
  * CHASSIS_COMMAND_QUEUE_LENGTH：跨任务命令队列能暂存的最大命令数。

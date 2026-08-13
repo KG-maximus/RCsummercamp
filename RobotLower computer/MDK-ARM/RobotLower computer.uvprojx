@@ -666,39 +666,24 @@
               <FilePath>../APP/Chassis/chassis_mecanum.h</FilePath>
             </File>
             <File>
+              <FileName>chassis.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Chassis/chassis.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Chassis/chassis.h</FilePath>
+            </File>
+            <File>
               <FileName>chassis_control.c</FileName>
               <FileType>1</FileType>
               <FilePath>../APP/Chassis/chassis_control.c</FilePath>
             </File>
             <File>
-              <FileName>chassis_control.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>../APP/Chassis/chassis_control.h</FilePath>
-            </File>
-            <File>
               <FileName>chassis_config.h</FileName>
               <FileType>5</FileType>
               <FilePath>../APP/Chassis/chassis_config.h</FilePath>
-            </File>
-            <File>
-              <FileName>chassis_port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../APP/Chassis/chassis_port.c</FilePath>
-            </File>
-            <File>
-              <FileName>chassis_port.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>../APP/Chassis/chassis_port.h</FilePath>
-            </File>
-            <File>
-              <FileName>chassis_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../APP/Chassis/chassis_task.c</FilePath>
-            </File>
-            <File>
-              <FileName>chassis_task.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>../APP/Chassis/chassis_task.h</FilePath>
             </File>
           </Files>
         </Group>

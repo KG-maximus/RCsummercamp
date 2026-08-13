@@ -65,7 +65,7 @@ typedef struct
     /*
      * 以下三个字段由上位机/总状态机用于调试、回传或自身仲裁；当前底盘执行
      * 层不再据此拒绝命令，避免把“谁拥有业务控制权”的策略重复放在下位机。
-     * issued_at_ms 为 0 时，ChassisTask_PostCommand() 会填写接收时 HAL tick。
+     * issued_at_ms 为 0 时，ChassisPostCommand() 会填写接收时 HAL tick。
      */
     uint32_t sequence;       /* 上游命令序号；建议同一来源单调递增。 */
     uint32_t issued_at_ms;   /* 上游生成/下位机接收时间，单位 ms。 */

@@ -135,7 +135,7 @@ typedef struct
 /*
  * 一阶速度斜坡限制器：限制每个控制周期内速度指令能变化多少。
  * 它用于抑制突然给满速度造成的打滑和电流冲击，不等同于完整的
- * 七段 S 曲线位置规划器；后者由 StrategyAlgorithm 模块负责。
+ * 七段 S 曲线位置规划器；后者由 APP/Common 的 StrategyAlgorithm 模块负责。
  */
 typedef struct
 {

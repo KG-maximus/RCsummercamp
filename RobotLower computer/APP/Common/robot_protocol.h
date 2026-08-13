@@ -8,9 +8,14 @@ extern "C" {
 #include <stdint.h>
 
 /*
- * 这是机器人内部的“语义协议”，用于任务和模块之间传递已经解析好的命令。
- * 它不是串口、USB 或 CAN 的线缆字节格式。上位机通信模块应先完成帧校验、
- * 大小端转换和单位换算，再构造 ChassisCommand_t 投递给底盘任务。
+ * 这是机器人内部的“语义协议”，用于上位机通信任务、机器人总状态机和
+ * 下位机执行模块之间传递已解析的命令与状态。它不是串口、USB 或 CAN 的
+ * 线缆字节格式。
+ *
+ * 上位机/总状态机职责：完成帧校验、大小端转换、单位换算、指令来源仲裁、
+ * 去重/排序和业务级有效期管理，再构造 ChassisCommand_t 投递给底盘任务。
+ * 下位机职责：按照最近接收的有效语义命令执行，并始终保留参数有限性、
+ * 物理限速、反馈超时、CAN 故障和急停等硬件安全保护。
  */
 
 typedef enum
@@ -57,9 +62,14 @@ typedef struct
 
 typedef struct
 {
-    uint32_t sequence;       /* 同一命令源单调递增；0 表示暂不检查序号。 */
-    uint32_t issued_at_ms;   /* 生成命令的本机时间；投递函数可自动填写。 */
-    uint32_t valid_for_ms;   /* 队列中允许滞留的时间；0 使用控制器默认值。 */
+    /*
+     * 以下三个字段由上位机/总状态机用于调试、回传或自身仲裁；当前底盘执行
+     * 层不再据此拒绝命令，避免把“谁拥有业务控制权”的策略重复放在下位机。
+     * issued_at_ms 为 0 时，ChassisTask_PostCommand() 会填写接收时 HAL tick。
+     */
+    uint32_t sequence;       /* 上游命令序号；建议同一来源单调递增。 */
+    uint32_t issued_at_ms;   /* 上游生成/下位机接收时间，单位 ms。 */
+    uint32_t valid_for_ms;   /* 上游业务有效期，单位 ms；供上游仲裁与诊断。 */
     ChassisCommandSource_t source;
     ChassisCommandType_t type;
     ChassisReferenceFrame_t frame;

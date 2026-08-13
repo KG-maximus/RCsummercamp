@@ -640,6 +640,16 @@
               <FileType>5</FileType>
               <FilePath>../APP/Common/bsp_callback.h</FilePath>
             </File>
+            <File>
+              <FileName>StrategyAlgorithm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../APP/Common/StrategyAlgorithm.c</FilePath>
+            </File>
+            <File>
+              <FileName>StrategyAlogrithm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>../APP/Common/StrategyAlogrithm.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -654,16 +664,6 @@
               <FileName>chassis_mecanum.h</FileName>
               <FileType>5</FileType>
               <FilePath>../APP/Chassis/chassis_mecanum.h</FilePath>
-            </File>
-            <File>
-              <FileName>StrategyAlgorithm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../APP/Chassis/StrategyAlgorithm.c</FilePath>
-            </File>
-            <File>
-              <FileName>StrategyAlogrithm.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>../APP/Chassis/StrategyAlogrithm.h</FilePath>
             </File>
             <File>
               <FileName>chassis_control.c</FileName>
